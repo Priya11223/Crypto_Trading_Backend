@@ -3,6 +3,7 @@ import com.email_test.EmailCheck.Dto.UserDto;
 import com.email_test.EmailCheck.Modal.User;
 import com.email_test.EmailCheck.Utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,6 +30,12 @@ public class AuthService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Value("${app.clientId}")
+    private String ci;
+
+    @Value("${app.clientSecret}")
+    private String sec;
+
     public String getAccessToken(String authCode, String redirectUri) {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -37,8 +44,8 @@ public class AuthService {
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("code", authCode);
-        params.add("client_id", "935505833036-bj7sl40j8652cbh1thmfg6lvjfuqrpdq.apps.googleusercontent.com");
-        params.add("client_secret", "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");
+        params.add("client_id", ci);
+        params.add("client_secret", sec);
         params.add("redirect_uri", redirectUri);
         params.add("grant_type", "authorization_code");
 
