@@ -6,13 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -26,6 +24,9 @@ public class AuthService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private WishlistService wishlistService;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -57,7 +58,7 @@ public class AuthService {
         return (String) response.getBody().get("access_token");
     }
 
-    public Map<String, String> getUserInfo(String accessToken) {
+    public Map<String, String> getUserInfoGoogle(String accessToken) {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -91,7 +92,8 @@ public class AuthService {
             req.setUsername(name);
             req.setGoogleId(sub);
             req.setPic(pic);
-            userService.createUser(req);
+            User saved = userService.createUserViaGoogle(req);
+            wishlistService.createWishlist(saved);
         }
 
         String jwt = jwtUtils.generateToken(email);
@@ -101,7 +103,7 @@ public class AuthService {
     }
 
     public Map<String, String> setUser(String name, String email, String pass) {
-        User user = userService.getEmail(email);
+        User user = userService.getUserFromEmail(email);
         Map<String, String> result = new HashMap<>();
         if(user != null){
             result.put("status", "user");
@@ -111,7 +113,8 @@ public class AuthService {
             req.setUsername(name);
             req.setEmail(email);
             req.setPass(pass);
-            userService.createUser(req);
+            User user1 = userService.createUser(req);
+            wishlistService.createWishlist(user1);
             result.put("status", "new_user");
             result.put("name", name);
             result.put("email", email);
@@ -120,6 +123,18 @@ public class AuthService {
             result.put("jwt", jwt);
         }
         return result;
+    }
+
+    public Map<String, String> getUserInfo(String email) {
+        User user = userService.getUserFromEmail(email);
+        Map<String, String> mp = new HashMap<>();
+        mp.put("email", email);
+        mp.put("name", user.getUsername());
+        mp.put("pic", user.getPic());
+        String jwt = jwtUtils.generateToken(email);
+        mp.put("jwt", jwt);
+        mp.put("message", "Success");
+        return mp;
     }
 
 
