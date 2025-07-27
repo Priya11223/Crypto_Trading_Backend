@@ -24,7 +24,7 @@ public class WishlistController {
     @Autowired
     private WishlistService wishlistService;
 
-    @PostMapping("/add/{coinId}")
+    @PatchMapping("/add/{coinId}")
     public ResponseEntity<?> addItemToWatchlist(@PathVariable String coinId) throws Exception {
         User user = userService.findUserByJwt();
         Coin coin = coinService.getCoinDetails(coinId);
